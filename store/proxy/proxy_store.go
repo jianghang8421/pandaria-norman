@@ -433,6 +433,9 @@ func (s *Store) toInternal(mapper types.Mapper, data map[string]interface{}) err
 }
 
 func (s *Store) Update(apiContext *types.APIContext, schema *types.Schema, data map[string]interface{}, id string) (map[string]interface{}, error) {
+
+	logrus.Info("jianghang norman proxystore update")
+
 	var (
 		result map[string]interface{}
 		err    error
@@ -456,8 +459,11 @@ func (s *Store) Update(apiContext *types.APIContext, schema *types.Schema, data 
 		if rawErr != nil {
 			return nil, rawErr
 		}
-
+		logrus.Infof("jianghang before merge existing: %v", existing)
+		logrus.Infof("jianghang before merge data: %v", data)
 		existing = merge.APIUpdateMerge(schema.InternalSchema, apiContext.Schemas, existing, data, apiContext.Option("replace") == "true")
+
+		logrus.Infof("jianghang after merge existing: %v", existing)
 
 		values.PutValue(existing, resourceVersion, "metadata", "resourceVersion")
 		values.PutValue(existing, namespace, "metadata", "namespace")
