@@ -195,10 +195,13 @@ func (s *Store) Context() types.StorageContext {
 func (s *Store) List(apiContext *types.APIContext, schema *types.Schema, opt *types.QueryOptions) ([]map[string]interface{}, error) {
 	var resultList unstructured.UnstructuredList
 
+	logrus.Infof("jianghang norman proxy store List %v %v %v", s.group, s.kind, s.prefix)
+	// logrus.Infof("jianghang norman proxy store List page limit %v", *opt.Pagination.Limit)
+
 	// if there are no namespaces field in options, a single request is made
 	if opt == nil || opt.Namespaces == nil {
 		ns := getNamespace(apiContext, opt)
-		list, err := s.retryList(ns, apiContext)
+		list, err := s.retryList(ns, apiContext, opt)
 		if err != nil {
 			return nil, err
 		}
@@ -213,7 +216,7 @@ func (s *Store) List(apiContext *types.APIContext, schema *types.Schema, opt *ty
 		for _, ns := range allNS {
 			nsCopy := ns
 			errGroup.Go(func() error {
-				list, err := s.retryList(nsCopy, apiContext)
+				list, err := s.retryList(nsCopy, apiContext, opt)
 				if err != nil {
 					return err
 				}
@@ -232,14 +235,33 @@ func (s *Store) List(apiContext *types.APIContext, schema *types.Schema, opt *ty
 
 	var result []map[string]interface{}
 
+	logrus.Infof("jianghang norman proxy store result len %v", len(resultList.Items))
+
+	jj1, _ := ejson.Marshal(resultList.Items)
+	logrus.Infof("jianghang norman proxy store reulst items json  %s", string(jj1))
+
 	for _, obj := range resultList.Items {
 		result = append(result, s.fromInternal(apiContext, schema, obj.Object))
 	}
 
-	return apiContext.AccessControl.FilterList(apiContext, schema, result, s.authContext), nil
+	logrus.Infof("jianghang norman proxy store List after internal len  %v", len(result))
+
+	logrus.Infof("jianghang norman proxy store authContext %v", s.authContext)
+
+	jj2, _ := ejson.Marshal(result)
+	logrus.Infof("jianghang norman proxy store reulst  json  %s", string(jj2))
+
+	aa := apiContext.AccessControl.FilterList(apiContext, schema, result, s.authContext)
+
+	jj, _ := ejson.Marshal(aa)
+	logrus.Infof("jianghang norman proxy store filter return json  %s", string(jj))
+
+	logrus.Infof("jianghang norman proxy store filter List len  %v", len(aa))
+
+	return aa, nil
 }
 
-func (s *Store) retryList(namespace string, apiContext *types.APIContext) (*unstructured.UnstructuredList, error) {
+func (s *Store) retryList(namespace string, apiContext *types.APIContext, opt *types.QueryOptions) (*unstructured.UnstructuredList, error) {
 	var resultList *unstructured.UnstructuredList
 	k8sClient, err := s.k8sClient(apiContext)
 	if err != nil {
@@ -248,6 +270,11 @@ func (s *Store) retryList(namespace string, apiContext *types.APIContext) (*unst
 
 	for i := 0; i < 3; i++ {
 		req := s.common(namespace, k8sClient.Get())
+		// logrus.Infof("jianghang retryList url: %v", req.URL().String())
+		// if opt != nil && opt.Pagination != nil && opt.Pagination.Limit != nil && *opt.Pagination.Limit > 0 {
+		// 	req = req.Param("limit", strconv.FormatInt(*opt.Pagination.Limit, 10))
+		// 	logrus.Infof("jianghang setlimit retryList url: %v", req.URL().String())
+		// }
 		start := time.Now()
 		resultList = &unstructured.UnstructuredList{}
 		err = req.Do(apiContext.Request.Context()).Into(resultList)

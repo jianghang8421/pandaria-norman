@@ -5,3 +5,4 @@
 *.swp
 /.trash-cache
 /trash.lock
+.vscode

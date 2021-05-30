@@ -53,6 +53,11 @@ outer:
 }
 
 func ApplyPagination(pagination *types.Pagination, data []map[string]interface{}) []map[string]interface{} {
+	// if pagination != nil && pagination.Limit != nil {
+	// 	logrus.Infof("jianghang ApplyPagination limit %v", *pagination.Limit)
+	// }
+	// logrus.Infof("jianghang data len %v", len(data))
+
 	if pagination == nil || pagination.Limit == nil {
 		return data
 	}

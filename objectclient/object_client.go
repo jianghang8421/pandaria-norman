@@ -119,12 +119,14 @@ func (p *ObjectClient) Create(o runtime.Object) (runtime.Object, error) {
 }
 
 func (p *ObjectClient) GetNamespaced(namespace, name string, opts metav1.GetOptions) (runtime.Object, error) {
+	// logrus.Infof("jianghang norman objectclient GetNamespaced group %v kind %v name %v version %v ", p.resource.Group, p.resource.Kind, p.resource.Name, p.resource.Version)
 	logrus.Tracef("REST GET %s/%s/%s/%s/%s/%s", p.getAPIPrefix(), p.gvk.Group, p.gvk.Version, namespace, p.resource.Name, name)
 	result := p.Factory.Object()
 	return result, p.client.Get(p.ctx, namespace, name, result, opts)
 }
 
 func (p *ObjectClient) Get(name string, opts metav1.GetOptions) (runtime.Object, error) {
+	// logrus.Infof("jianghang norman objectclient Get group %v kind %v name %v version %v ", p.resource.Group, p.resource.Kind, p.resource.Name, p.resource.Version)
 	logrus.Tracef("REST GET %s/%s/%s/%s/%s/%s", p.getAPIPrefix(), p.gvk.Group, p.gvk.Version, p.ns, p.resource.Name, name)
 	result := p.Factory.Object()
 	return result, p.client.Get(p.ctx, p.ns, name, result, opts)
@@ -173,12 +175,14 @@ func (p *ObjectClient) Delete(name string, opts *metav1.DeleteOptions) error {
 }
 
 func (p *ObjectClient) List(opts metav1.ListOptions) (runtime.Object, error) {
+	// logrus.Infof("jianghang norman objectclient List group %v kind %v name %v version %v ", p.resource.Group, p.resource.Kind, p.resource.Name, p.resource.Version)
 	result := p.Factory.List()
 	logrus.Tracef("REST LIST %s/%s/%s/%s/%s", p.getAPIPrefix(), p.gvk.Group, p.gvk.Version, p.ns, p.resource.Name)
 	return result, p.client.List(p.ctx, p.ns, result, opts)
 }
 
 func (p *ObjectClient) ListNamespaced(namespace string, opts metav1.ListOptions) (runtime.Object, error) {
+	// logrus.Infof("jianghang norman objectclient  ListNamespaced group %v kind %v name %v version %v ", p.resource.Group, p.resource.Kind, p.resource.Name, p.resource.Version)
 	result := p.Factory.List()
 	logrus.Tracef("REST LIST %s/%s/%s/%s/%s", p.getAPIPrefix(), p.gvk.Group, p.gvk.Version, namespace, p.resource.Name)
 	return result, p.client.List(p.ctx, namespace, result, opts)
